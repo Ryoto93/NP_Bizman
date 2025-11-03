@@ -1,0 +1,330 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Scenario {
+  id                 String              @id @default(uuid())
+  name               String
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  businessPlans      BusinessPlan[]
+  corporateCostPlans CorporateCostPlan[]
+  persons            Person[]
+}
+
+model Business {
+  id            String             @id @default(uuid())
+  name          String
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  costItems     BusinessCostItem[]
+  plans         BusinessPlan[]
+  deals         Deal[]
+  kpis          KPI[]
+  persons       Person[]
+  Product       Product[]
+  revenueLogics RevenueLogic[]
+}
+
+model Product {
+  id         String    @id @default(uuid())
+  name       String
+  businessId String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deals      Deal[]
+  business   Business? @relation(fields: [businessId], references: [id])
+}
+
+model DealStatus {
+  id        String   @id @default(uuid())
+  name      String
+  order     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deals     Deal[]
+}
+
+model Customer {
+  id            String   @id @default(uuid())
+  name          String
+  contactPerson String?
+  email         String?
+  phone         String?
+  address       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deals         Deal[]
+}
+
+model Deal {
+  id              String          @id @default(uuid())
+  name            String
+  customerId      String
+  productId       String?
+  statusId        String
+  expectedMonth   Int
+  expectedYear    Int
+  expectedAmount  Decimal         @db.Decimal(15, 2)
+  assignedUserId  String?
+  activityHistory Json?
+  businessId      String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  business        Business?       @relation(fields: [businessId], references: [id])
+  customer        Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  product         Product?        @relation(fields: [productId], references: [id])
+  status          DealStatus      @relation(fields: [statusId], references: [id])
+  revenueResults  RevenueResult[]
+
+  @@index([customerId])
+  @@index([statusId])
+  @@index([businessId])
+}
+
+model KPI {
+  id                  String              @id @default(uuid())
+  businessId          String
+  name                String
+  unit                String?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  business            Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  plans               KPIPlan[]
+  results             KPIResult[]
+  revenueLogicEntries RevenueLogicEntry[]
+
+  @@index([businessId])
+}
+
+model RevenueLogic {
+  id         String              @id @default(uuid())
+  businessId String
+  formula    String
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+  business   Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  entries    RevenueLogicEntry[]
+
+  @@index([businessId])
+}
+
+model RevenueLogicEntry {
+  id             String       @id @default(uuid())
+  revenueLogicId String
+  kpiId          String?
+  coefficient    Decimal      @db.Decimal(15, 4)
+  operator       String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  kpi            KPI?         @relation(fields: [kpiId], references: [id])
+  revenueLogic   RevenueLogic @relation(fields: [revenueLogicId], references: [id], onDelete: Cascade)
+
+  @@index([revenueLogicId])
+  @@index([kpiId])
+}
+
+model BusinessPlan {
+  id             String               @id @default(uuid())
+  businessId     String
+  scenarioId     String
+  fiscalYear     Int
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  costPlans      BusinessCostPlan[]
+  costResults    BusinessCostResult[]
+  business       Business             @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  scenario       Scenario             @relation(fields: [scenarioId], references: [id])
+  kpiPlans       KPIPlan[]
+  revenueResults RevenueResult[]
+
+  @@unique([businessId, scenarioId, fiscalYear])
+  @@index([businessId])
+  @@index([scenarioId])
+}
+
+model KPIPlan {
+  id             String       @id @default(uuid())
+  businessPlanId String
+  kpiId          String
+  month          Int
+  value          Decimal      @db.Decimal(15, 4)
+  notes          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  businessPlan   BusinessPlan @relation(fields: [businessPlanId], references: [id], onDelete: Cascade)
+  kpi            KPI          @relation(fields: [kpiId], references: [id], onDelete: Cascade)
+
+  @@unique([businessPlanId, kpiId, month])
+  @@index([businessPlanId])
+  @@index([kpiId])
+  @@index([month])
+}
+
+model KPIResult {
+  id        String   @id @default(uuid())
+  kpiId     String
+  month     Int
+  year      Int
+  value     Decimal  @db.Decimal(15, 4)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  kpi       KPI      @relation(fields: [kpiId], references: [id], onDelete: Cascade)
+
+  @@unique([kpiId, month, year])
+  @@index([kpiId])
+  @@index([month])
+  @@index([year])
+}
+
+model RevenueResult {
+  id             String       @id @default(uuid())
+  businessPlanId String
+  month          Int
+  value          Decimal      @db.Decimal(15, 2)
+  notes          String?
+  dealId         String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  businessPlan   BusinessPlan @relation(fields: [businessPlanId], references: [id], onDelete: Cascade)
+  deal           Deal?        @relation(fields: [dealId], references: [id])
+
+  @@unique([businessPlanId, month])
+  @@index([businessPlanId])
+  @@index([month])
+  @@index([dealId])
+}
+
+model BusinessCostItem {
+  id         String               @id @default(uuid())
+  businessId String
+  name       String
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+  business   Business             @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  plans      BusinessCostPlan[]
+  results    BusinessCostResult[]
+
+  @@index([businessId])
+}
+
+model BusinessCostPlan {
+  id             String           @id @default(uuid())
+  businessPlanId String
+  costItemId     String
+  month          Int
+  value          Decimal          @db.Decimal(15, 2)
+  notes          String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  businessPlan   BusinessPlan     @relation(fields: [businessPlanId], references: [id], onDelete: Cascade)
+  costItem       BusinessCostItem @relation(fields: [costItemId], references: [id], onDelete: Cascade)
+
+  @@unique([businessPlanId, costItemId, month])
+  @@index([businessPlanId])
+  @@index([costItemId])
+  @@index([month])
+}
+
+model BusinessCostResult {
+  id             String           @id @default(uuid())
+  businessPlanId String
+  costItemId     String
+  month          Int
+  value          Decimal          @db.Decimal(15, 2)
+  notes          String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  businessPlan   BusinessPlan     @relation(fields: [businessPlanId], references: [id], onDelete: Cascade)
+  costItem       BusinessCostItem @relation(fields: [costItemId], references: [id], onDelete: Cascade)
+
+  @@unique([businessPlanId, costItemId, month])
+  @@index([businessPlanId])
+  @@index([costItemId])
+  @@index([month])
+}
+
+model Person {
+  id           String    @id @default(uuid())
+  name         String
+  contractType String
+  unitPrice    Decimal   @db.Decimal(15, 2)
+  startMonth   Int
+  startYear    Int
+  endMonth     Int?
+  endYear      Int?
+  businessId   String?
+  scenarioId   String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  business     Business? @relation(fields: [businessId], references: [id])
+  scenario     Scenario  @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@index([scenarioId])
+}
+
+model CorporateCostItem {
+  id        String                @id @default(uuid())
+  name      String
+  isAuto    Boolean               @default(false)
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+  plans     CorporateCostPlan[]
+  results   CorporateCostResult[]
+}
+
+model CorporateCostPlan {
+  id         String            @id @default(uuid())
+  costItemId String
+  scenarioId String
+  month      Int
+  year       Int
+  value      Decimal           @db.Decimal(15, 2)
+  notes      String?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  costItem   CorporateCostItem @relation(fields: [costItemId], references: [id], onDelete: Cascade)
+  scenario   Scenario          @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+
+  @@unique([costItemId, scenarioId, month, year])
+  @@index([costItemId])
+  @@index([scenarioId])
+  @@index([month])
+  @@index([year])
+}
+
+model CorporateCostResult {
+  id         String            @id @default(uuid())
+  costItemId String
+  month      Int
+  year       Int
+  value      Decimal           @db.Decimal(15, 2)
+  notes      String?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  costItem   CorporateCostItem @relation(fields: [costItemId], references: [id], onDelete: Cascade)
+
+  @@unique([costItemId, month, year])
+  @@index([costItemId])
+  @@index([month])
+  @@index([year])
+}
+
+model UserProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  name      String?
+  email     String?
+  role      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}

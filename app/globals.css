@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 255 255 255;
+    --foreground: 15 23 42;
+    --card: 255 255 255;
+    --card-foreground: 15 23 42;
+    --border: 226 232 240;
+    --input: 226 232 240;
+    --muted: 248 250 252;
+    --muted-foreground: 100 116 139;
+    --accent: 248 250 252;
+    --accent-foreground: 15 23 42;
+    --primary: 249 95 6;
+    --primary-foreground: 255 255 255;
+    --success: 34 197 94;
+    --success-foreground: 255 255 255;
+    --warning: 234 179 8;
+    --warning-foreground: 15 23 42;
+    --error: 239 68 68;
+    --error-foreground: 255 255 255;
+    --info: 59 130 246;
+    --info-foreground: 255 255 255;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .transition-base {
+    transition: all 0.2s ease-in-out;
+  }
+
+  .transition-fast {
+    transition: all 0.1s ease-in-out;
+  }
+
+  .transition-slow {
+    transition: all 0.3s ease-in-out;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .hover-glow:hover {
+    box-shadow: 0 0 20px rgba(249, 95, 6, 0.3);
+  }
+}
+
+
