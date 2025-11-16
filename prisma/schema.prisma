@@ -7,11 +7,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum ScenarioCategory {
+  PLAN     // 予算（Bad / Better / Best など）
+  FORECAST // 最新見込み（Latest Forecast など）
+}
+
 model Scenario {
-  id                 String              @id @default(uuid())
-  name               String
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
+  id                 String           @id @default(uuid())
+  name               String           // 画面表示名（例: "Betterケース", "最新見込み"）
+  code               String           @unique // システム内コード（例: "PLAN_BETTER", "FORECAST_LATEST"）
+  category           ScenarioCategory @default(PLAN)
+  isDefault          Boolean          @default(false)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
   businessPlans      BusinessPlan[]
   corporateCostPlans CorporateCostPlan[]
   persons            Person[]
@@ -142,10 +150,28 @@ model BusinessPlan {
   scenario       Scenario             @relation(fields: [scenarioId], references: [id])
   kpiPlans       KPIPlan[]
   revenueResults RevenueResult[]
+  salesPlans     SalesPlan[]
 
   @@unique([businessId, scenarioId, fiscalYear])
   @@index([businessId])
   @@index([scenarioId])
+}
+
+model SalesPlan {
+  id             String       @id @default(uuid())
+  businessPlanId String
+  productId      String
+  month          Int
+  amount         Decimal      @db.Decimal(15, 2)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  businessPlan   BusinessPlan @relation(fields: [businessPlanId], references: [id], onDelete: Cascade)
+  product        Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([businessPlanId, productId, month])
+  @@index([businessPlanId])
+  @@index([productId])
+  @@index([month])
 }
 
 model KPIPlan {

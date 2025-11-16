@@ -169,8 +169,44 @@ GET    /api/crm/summary                               // CRMサマリー取得
 
 #### 全社サマリー
 ```
-GET    /api/dashboard/ytd-summary                     // YTDサマリー取得（年指定）
+GET    /api/dashboard/ytd-summary                     // YTDサマリー取得（年・シナリオ指定）
 GET    /api/dashboard/crm-summary                     // CRMサマリー取得
+```
+
+**クエリパラメータ例（ytd-summary）**
+
+- `fiscalYear`: number （会計年度）
+- `planScenarioIds`: string[] （比較対象とする事業計画シナリオID群。通常は Better/Bad/Best）
+- `forecastScenarioId`: string （最新見込みシナリオID。通常は code = FORECAST_LATEST のシナリオ）
+
+**レスポンスイメージ**
+
+```json
+{
+  "success": true,
+  "data": {
+    "dimension": "company",           // "company" | "business" | "product"
+    "items": [
+      {
+        "key": "company-total",
+        "label": "全社",
+        "metrics": {
+          "revenue": {
+            "plan": {
+              "PLAN_BETTER": 120000000,
+              "PLAN_BAD": 90000000,
+              "PLAN_BEST": 150000000
+            },
+            "forecast": 110000000,
+            "actual": 80000000
+          },
+          "cost": { /* 同様の構造 */ },
+          "profit": { /* 同様の構造 */ }
+        }
+      }
+    ]
+  }
+}
 ```
 
 ## リクエスト/レスポンス形式

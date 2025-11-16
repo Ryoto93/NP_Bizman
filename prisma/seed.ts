@@ -8,24 +8,53 @@ async function main() {
   // 1. シナリオマスター
   console.log("📊 シナリオマスターを作成中...");
   const betterScenario = await prisma.scenario.upsert({
-    where: { id: "better-case" },
-    update: {},
+    where: { code: "PLAN_BETTER" },
+    update: { name: "Betterケース" },
     create: {
       id: "better-case",
+      code: "PLAN_BETTER",
       name: "Betterケース",
+      category: "PLAN",
     },
   });
   console.log(`✅ ${betterScenario.name} を作成`);
 
   const badScenario = await prisma.scenario.upsert({
-    where: { id: "bad-case" },
-    update: {},
+    where: { code: "PLAN_BAD" },
+    update: { name: "Badケース" },
     create: {
       id: "bad-case",
+      code: "PLAN_BAD",
       name: "Badケース",
+      category: "PLAN",
     },
   });
   console.log(`✅ ${badScenario.name} を作成`);
+
+  const bestScenario = await prisma.scenario.upsert({
+    where: { code: "PLAN_BEST" },
+    update: { name: "Bestケース" },
+    create: {
+      id: "best-case",
+      code: "PLAN_BEST",
+      name: "Bestケース",
+      category: "PLAN",
+    },
+  });
+  console.log(`✅ ${bestScenario.name} を作成`);
+
+  const latestForecastScenario = await prisma.scenario.upsert({
+    where: { code: "FORECAST_LATEST" },
+    update: { name: "最新見込み", isDefault: true },
+    create: {
+      id: "latest-forecast",
+      code: "FORECAST_LATEST",
+      name: "最新見込み",
+      category: "FORECAST",
+      isDefault: true,
+    },
+  });
+  console.log(`✅ ${latestForecastScenario.name} を作成`);
 
   // 2. 案件ステータス
   console.log("📋 案件ステータスを作成中...");

@@ -207,6 +207,26 @@ CREATE INDEX IF NOT EXISTS "RevenueResult_businessPlanId_idx" ON "RevenueResult"
 CREATE INDEX IF NOT EXISTS "RevenueResult_month_idx" ON "RevenueResult"("month");
 CREATE INDEX IF NOT EXISTS "RevenueResult_dealId_idx" ON "RevenueResult"("dealId");
 
+-- 商材別売上計画テーブル
+CREATE TABLE IF NOT EXISTS "SalesPlan" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessPlanId" TEXT NOT NULL,
+    "productId" TEXT NOT NULL,
+    "month" INTEGER NOT NULL,
+    "amount" DECIMAL(15,2) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "SalesPlan_businessPlanId_fkey" FOREIGN KEY ("businessPlanId") REFERENCES "BusinessPlan"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "SalesPlan_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "SalesPlan_businessPlanId_productId_month_key"
+  ON "SalesPlan"("businessPlanId", "productId", "month");
+
+CREATE INDEX IF NOT EXISTS "SalesPlan_businessPlanId_idx" ON "SalesPlan"("businessPlanId");
+CREATE INDEX IF NOT EXISTS "SalesPlan_productId_idx" ON "SalesPlan"("productId");
+CREATE INDEX IF NOT EXISTS "SalesPlan_month_idx" ON "SalesPlan"("month");
+
 -- ============================================
 -- 事業コスト
 -- ============================================
